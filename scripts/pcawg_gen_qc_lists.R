@@ -21,9 +21,13 @@
 
 # main QC table
 qc.syn.id <- 'syn4991537'
+# folder 
 qc.folder.syn.id <- 'syn3107128'
 
-metadata.file <- "http://www.ebi.ac.uk/~nf/pcawg/metadata_freeze3_v4.tsv"
+#metadata.file <- "http://www.ebi.ac.uk/~nf/pcawg/metadata_freeze3_v4.tsv"
+#
+metadata.syn.id <- "syn5002504"
+
 
 args <- commandArgs(trailingOnly=TRUE)
 
@@ -80,10 +84,20 @@ cat("Downloading data from Synapse...done.\n")
 ###########
 # Metadata
 cat("Downloading and reading metadata...\n")
+try(md.link<-synGet(metadata.syn.id,downloadLocation="./",ifcollision = "overwrite.local"))
+if( is.null(md.link) ) {
+  cat("ERROR: Unable to download metadata table from Synapse\n")
+  cat("For information on about to setup the credentials check https://annaisystems.zendesk.com/hc/en-us/article_attachments/201188358/Pan-Cancer_Researcher_Guide.pdf")
+  q(status=1)
+}
+cat("Downloaded:",getFileLocation(md.link), "\n")
+md.file <- basename(getFileLocation(md.link))
+cat("Downloading data from Synapse...done.\n")
+
 metadata <- NULL
-try(metadata <- read.table(metadata.file,header=T,check.names=F,sep="\t",quote="\"",comment.char=""))
+try(metadata <- read.table(md.file,header=T,check.names=F,sep="\t",quote="\"",comment.char=""))
 if(is.null(metadata)) {
-  cat("Unable to load ",metadata.file)
+  cat("Unable to load ",md.file)
   q(status=1)
 }
 metadata$library_type[is.na(metadata$library_type)] <- "fr-unstranded"
