@@ -240,28 +240,29 @@ if ( upload == "yes" ) {
   cat("Uploading files to synapse...")
   qc.folder <- synGet(qc.folder.syn.id)
   # samples
-  f1 <- synStore(File(path="samples_white_list.tsv", parentId=qc.folder$properties$id),
+  f1 <- synStore(File(path="samples_white_list.tsv", parentId=qc.folder$properties$id,name="Sample whitelist"),
+                 
                  activityName="Sample - whitelist",
                  used=list(
                    list(url=thisCode, name=basename(thisCode), wasExecuted=T),
                    list(entity=qc.link, wasExecuted=F),
                    list(entity=md.link, wasExecuted=F)))
 
-  f2 <- synStore(File(path="samples_black_list.tsv", parentId=qc.folder$properties$id),
+  f2 <- synStore(File(path="samples_black_list.tsv", parentId=qc.folder$properties$id,name="Sample blacklist"),
                 activityName="Sample - blacklist",
                 used=list(
                   list(url=thisCode, name=basename(thisCode), wasExecuted=T),
                   list(entity=qc.link, wasExecuted=F),
                   list(entity=md.link, wasExecuted=F)))
 
-  f3 <- synStore(File(path="donors_white_list.tsv", parentId=qc.folder$properties$id),
+  f3 <- synStore(File(path="donors_white_list.tsv", parentId=qc.folder$properties$id,name="Donor whitelist"),
                 activityName="Donor - whitelist",
                 used=list(
                   list(url=thisCode, name=basename(thisCode), wasExecuted=T),
                   list(entity=qc.link, wasExecuted=F),
                   list(entity=md.link, wasExecuted=F)))
 
-  f4 <- synStore(File(path="donors_black_list.tsv", parentId=qc.folder$properties$id),
+  f4 <- synStore(File(path="donors_black_list.tsv", parentId=qc.folder$properties$id,name="Donor blacklist"),
                 activityName="Donor - blacklist",
                 used=list(
                   list(url=thisCode, name=basename(thisCode), wasExecuted=T),
