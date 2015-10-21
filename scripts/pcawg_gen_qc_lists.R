@@ -103,7 +103,7 @@ if(is.null(metadata)) {
 metadata$library_type[is.na(metadata$library_type)] <- "fr-unstranded"
 rownames(metadata) <- metadata$analysis_id
 cat("Downloading and reading metadata...done.\n")
-cat(paste("Read ",nrow(metadata)," rows in ",metadata.file,"\n",sep=""))
+cat(paste("Read ",nrow(metadata)," rows in ",md.file,"\n",sep=""))
 
 
 # donors per project
@@ -237,7 +237,6 @@ cat("All files created.\n")
 
 if ( upload == "yes" ) {
   thisCode <- getPermlink(getRepo("Functional-Genomics/pancancer"), "scripts/pcawg_gen_qc_lists.R")
-
   cat("Uploading files to synapse...")
   qc.folder <- synGet(qc.folder.syn.id)
   # samples
@@ -246,28 +245,28 @@ if ( upload == "yes" ) {
                  used=list(
                    list(url=thisCode, name=basename(thisCode), wasExecuted=T),
                    list(entity=qc.link, wasExecuted=F),
-                   list(url=metadata.file, wasExecuted=F)))
+                   list(entity=md.link, wasExecuted=F)))
 
   f2 <- synStore(File(path="samples_black_list.tsv", parentId=qc.folder$properties$id),
                 activityName="Sample - blacklist",
                 used=list(
                   list(url=thisCode, name=basename(thisCode), wasExecuted=T),
                   list(entity=qc.link, wasExecuted=F),
-                  list(url=metadata.file, wasExecuted=F)))
+                  list(entity=md.link, wasExecuted=F)))
 
   f3 <- synStore(File(path="donors_white_list.tsv", parentId=qc.folder$properties$id),
                 activityName="Donor - whitelist",
                 used=list(
                   list(url=thisCode, name=basename(thisCode), wasExecuted=T),
                   list(entity=qc.link, wasExecuted=F),
-                  list(url=metadata.file, wasExecuted=F)))
+                  list(entity=md.link, wasExecuted=F)))
 
   f4 <- synStore(File(path="donors_black_list.tsv", parentId=qc.folder$properties$id),
                 activityName="Donor - blacklist",
                 used=list(
                   list(url=thisCode, name=basename(thisCode), wasExecuted=T),
                   list(entity=qc.link, wasExecuted=F),
-                  list(url=metadata.file, wasExecuted=F)))
+                  list(entity=md.link, wasExecuted=F)))
 
 }
 cat("All done,bye.\n")
