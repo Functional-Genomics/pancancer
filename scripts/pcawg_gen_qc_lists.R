@@ -118,6 +118,7 @@ cat("Read ",nrow(qc)," rows in ",qc.file,"\n")
 #dim(qc)
 rownames(qc) <- qc[,1]
 qc <- qc[,-1]
+colnames(qc) <- unlist(qc["orig_id_tophat",])
 
 samples.in.qc <- metadata[unique(gsub("/.*","",colnames(qc))),]
 cat("samples in QC ",nrow(samples.in.qc),"\n")
@@ -130,8 +131,6 @@ tumour <- sum(samples.in.qc$is_tumour=="yes",na.rm=T)
 ####################################
 # what was the correlation threshold 0.95
 # what was the criteria 3/bias
-# some analysis id appear multiple times with the  suffix {1,2,3...}
-# to which library does the id correspond to?
 vars <- grep("_fail",rownames(qc),value=T)
 print(vars)
 flagged.libs <- list()
@@ -215,12 +214,12 @@ white.list.donors <- unique(names(ab[ab==1]))
 
 
 # Donors
-write.table(white.list.donors,file=paste("donors_white_list.tsv",sep=""),quote=F,row.names=F,col.names=F)
-write.table(black.list.donors,file=paste("donors_black_list.tsv",sep=""),quote=F,row.names=F,col.names=F)
+write.table(white.list.donors,file=paste("donors_white_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
+write.table(black.list.donors,file=paste("donors_black_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
 
 # Samples
-write.table(metadata[samples.white.listed,c("analysis_id","submitted_donor_id")],file=paste("samples_white_list.tsv",sep=""),quote=F,row.names=F,col.names=F)
-write.table(metadata[samples.black.listed,c("analysis_id","submitted_donor_id")],file=paste("samples_black_list.tsv",sep=""),quote=F,row.names=F,col.names=F)
+write.table(metadata[samples.white.listed,c("analysis_id","submitted_donor_id")],file=paste("samples_white_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
+write.table(metadata[samples.black.listed,c("analysis_id","submitted_donor_id")],file=paste("samples_black_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
 
 
 # Libraries
@@ -230,8 +229,8 @@ df$samples <- gsub("/.*","",colnames(qc))
 df$donors <- metadata[df$samples,"donor_id"]
 df <- data.frame(df)
 rownames(df) <- df$libs
-write.table(df[white.list.libs,],file=paste("libs_white_list.tsv",sep=""),quote=F,row.names=F,col.names=F)
-write.table(df[black.list.libs,],file=paste("libs_black_list.tsv",sep=""),quote=F,row.names=F,col.names=F)
+write.table(df[white.list.libs,],file=paste("libs_white_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
+write.table(df[black.list.libs,],file=paste("libs_black_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
 
 cat("All files created.\n")
 
