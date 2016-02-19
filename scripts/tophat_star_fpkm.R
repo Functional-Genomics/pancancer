@@ -20,7 +20,7 @@
 # =========================================================
 
 
-# main QC table
+# gene expression
 data.in.synapse <- list()
 data.in.synapse$tophat2.fpkm.syn <- list(syn.id="syn5553983",
                                  file="tophat2.pcawg.fpkm.tsv.gz")
@@ -28,17 +28,14 @@ data.in.synapse$tophat2.fpkm.syn <- list(syn.id="syn5553983",
 data.in.synapse$star.fpkm.syn<- list(syn.id="syn5553981",
                                  file="star.pcawg.fpkm.tsv.gz")
 
-
-
 data.in.synapse$tophat2.raw.syn <- list(syn.id="syn5522827",
                                  file="tophat2.raw.tsv.gz")
 
-
-# QC
 data.in.synapse$star.raw.syn <- list(syn.id="syn3159796",
                                       file="star.raw.tsv.gz")
 
-# gene expression
+
+########################################################
 args <- commandArgs(trailingOnly=TRUE)
 
 if ( length(args) != 4 ) {
@@ -95,9 +92,9 @@ gene.lengths <- tsv.data[,2]
 names(gene.lengths) <- as.character(tsv.data[,1])
 head(gene.lengths)
 
-# Open the file with the list of protein coding genes
+
 #####################################
-# Open and load the gene lengths file
+# Open the file with the list of protein coding genes
 tsv.data <- fread(input=pcgenes.file,sep = "\t", header=T,check.names=FALSE,data.table=FALSE)
 pc.genes <- as.character(tsv.data[,1])
 head(pc.genes)
