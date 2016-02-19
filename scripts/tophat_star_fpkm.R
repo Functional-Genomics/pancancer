@@ -39,7 +39,6 @@ data.in.synapse$star.raw.syn <- list(syn.id="syn3159796",
                                       file="star.raw.tsv.gz")
 
 # gene expression
-args <- c("nf@ebi.ac.uk","Chatos!!!","fpkm_aux/gene.lengths.tsv","fpkm_aux/gencode_v19.protein_coding.txt")
 args <- commandArgs(trailingOnly=TRUE)
 
 if ( length(args) != 4 ) {
