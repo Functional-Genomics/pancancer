@@ -289,6 +289,7 @@ if ( upload == "yes" ) {
                  used=list(
                    list(url=thisCode, name=basename(thisCode), wasExecuted=T),
                    list(entity=qc.link, wasExecuted=F),
+                   list(entity=excluded.link,wasExecuted=F),
                    list(entity=md.link, wasExecuted=F)))
 
   f2 <- synStore(File(path="samples_black_list.tsv", parentId=qc.folder$properties$id,name="Sample blacklist"),
@@ -296,6 +297,7 @@ if ( upload == "yes" ) {
                 used=list(
                   list(url=thisCode, name=basename(thisCode), wasExecuted=T),
                   list(entity=qc.link, wasExecuted=F),
+                  list(entity=excluded.link,wasExecuted=F),
                   list(entity=md.link, wasExecuted=F)))
 
   f3 <- synStore(File(path="donors_white_list.tsv", parentId=qc.folder$properties$id,name="Donor whitelist"),
@@ -303,6 +305,7 @@ if ( upload == "yes" ) {
                 used=list(
                   list(url=thisCode, name=basename(thisCode), wasExecuted=T),
                   list(entity=qc.link, wasExecuted=F),
+                  list(entity=excluded.link,wasExecuted=F),
                   list(entity=md.link, wasExecuted=F)))
 
   f4 <- synStore(File(path="donors_black_list.tsv", parentId=qc.folder$properties$id,name="Donor blacklist"),
@@ -310,6 +313,7 @@ if ( upload == "yes" ) {
                 used=list(
                   list(url=thisCode, name=basename(thisCode), wasExecuted=T),
                   list(entity=qc.link, wasExecuted=F),
+                  list(entity=excluded.link,wasExecuted=F),
                   list(entity=md.link, wasExecuted=F)))
 
 }
