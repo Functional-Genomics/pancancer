@@ -24,6 +24,8 @@ qc.syn.id <- 'syn4991537'
 # folder 
 qc.folder.syn.id <- 'syn3107128'
 
+# samples excluded
+excluded.syn.id <- "syn5648208"
 #metadata.file <- "http://www.ebi.ac.uk/~nf/pcawg/metadata_freeze3_v4.tsv"
 #
 metadata.syn.id <- "syn5002504"
@@ -59,8 +61,8 @@ if (! require("devtools")) {
   require(devtools)
   install_github("brian-bot/rGithubClient")
 }
-require(rGithubClient)
-require(RCurl)
+library(rGithubClient)
+library(RCurl)
 
 
 cat("Connecting to Synapse...\n")
@@ -106,9 +108,37 @@ cat("Downloading and reading metadata...done.\n")
 cat(paste("Read ",nrow(metadata)," rows in ",md.file,"\n",sep=""))
 
 
-# donors per project
+# donors
 ss <- unique(metadata$submitted_donor_id)
+aids <- unique(metadata$aliquot_id)
 cat("Donors: "); cat(length(ss)); cat ("\n");
+cat("Aliquots: "); cat(length(aids)); cat ("\n");
+
+############################
+# Excluded samples/libraries
+excluded.link <- NULL
+
+try(excluded.link<-synGet(excluded.syn.id,downloadLocation="./",ifcollision = "overwrite.local"))
+if( is.null(excluded.link) ) {
+  cat("ERROR: Unable to download excluded samples table from Synapse\n")
+  cat("For information on about to setup the credentials check https://annaisystems.zendesk.com/hc/en-us/article_attachments/201188358/Pan-Cancer_Researcher_Guide.pdf")
+  q(status=1)
+}
+cat("Downloaded:",getFileLocation(excluded.link), "\n")
+excluded.file <- basename(getFileLocation(excluded.link))
+cat("Downloading data from Synapse...done.\n")
+
+excluded.libs.table <- NULL
+try(excluded.libs.table <- read.table(excluded.file,header=T,check.names=F,sep="\t",quote="\"",comment.char=""))
+if(is.null(excluded.libs.table)) {
+  cat("Unable to load ",excluded.file)
+  q(status=1)
+}
+cat("Found ",nrow(excluded.libs.table)," in ",excluded.file,"\n")
+excluded.samples <- excluded.libs.table$analysis_id[as.character(excluded.libs.table$fastq_file)=="all"]
+cat("Samples excluded ",length(excluded.samples),"\n")
+
+cat("Downloading and reading excluded samples...done.\n")
 
 
 #####
@@ -122,6 +152,7 @@ colnames(qc) <- unlist(qc["orig_id_tophat",])
 
 samples.in.qc <- metadata[unique(gsub("/.*","",colnames(qc))),]
 cat("samples in QC ",nrow(samples.in.qc),"\n")
+
 # 2202
 normal <- sum(samples.in.qc$is_tumour=="no",na.rm=T)
 #normal
@@ -145,7 +176,7 @@ for ( crit in vars ) {
 flagged.libs.v <- unique(unlist(flagged.libs))
 cat("Libraries flagged:",length(flagged.libs.v),"\n")
 # 267
-perc.libs.flagged <- length(flagged.libs.v)/ncol(qc)
+perc.libs.flagged <- round(length(flagged.libs.v)/ncol(qc)*100,2)
 cat("Libraries flagged (%):",perc.libs.flagged,"\n")
 
 # create a subset of the initial matrix
@@ -175,11 +206,17 @@ names(v) <- metadata$analysis_id
 
 analysis.ids <- v[names(x)]-x
 samples.black.listed <- names(analysis.ids[analysis.ids==0])
+cat("Samples blacklisted:",length(samples.black.listed),"\n")
+# add the excluded samples
+samples.black.listed <- unique(append(samples.black.listed,excluded.samples))
+cat("Samples excluded:",length(excluded.samples),"\n")
+cat("Samples blacklisted+excluded:",length(samples.black.listed),"\n")
 #length(samples.black.listed)
 
 a <- table(as.character(metadata[samples.black.listed,"submitted_donor_id"]))
 b <- table(as.character(metadata[metadata$submitted_donor_id%in% names(a),"submitted_donor_id"]))
 ab <- a/b
+
 cat("Donors blacklisted:",length(ab[ab==1]),"\n")
 black.list.donors <- unique(names(ab[ab==1]))
 
@@ -193,7 +230,9 @@ cat("Libraries whitelisted:",num.libraries.white.listed,"\n")
 # analysis ids
 white.list.libs2 <- gsub("/.*","",white.list.libs)
 x <- table(white.list.libs2)
+white.list.libs3 <- x[!names(x)%in%excluded.samples]
 cat("Samples with whitelisted libraries:",length(x),"\n")
+cat("Samples with whitelisted libraries:",length(white.list.libs3),"\n")
 
 # expected number of libs per sample
 v <- c()
@@ -205,6 +244,8 @@ names(v) <- metadata$analysis_id
 
 analysis.ids <- v[names(x)]-x
 samples.white.listed <- names(analysis.ids[analysis.ids==0])
+samples.white.listed <- samples.white.listed[!samples.white.listed%in%excluded.samples]
+cat("Samples whitelisted:",length(samples.white.listed),"\n")
 
 a <- table(as.character(metadata[samples.white.listed,"submitted_donor_id"]))
 b <- table(as.character(metadata[metadata$submitted_donor_id%in% names(a),"submitted_donor_id"]))
@@ -229,8 +270,11 @@ df$samples <- gsub("/.*","",colnames(qc))
 df$donors <- metadata[df$samples,"donor_id"]
 df <- data.frame(df)
 rownames(df) <- df$libs
-write.table(df[white.list.libs,],file=paste("libs_white_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
-write.table(df[black.list.libs,],file=paste("libs_black_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
+# remove the excluded samples
+df <- df[!df$samples %in% excluded.samples,]
+
+write.table(df[rownames(df)%in%white.list.libs,],file=paste("libs_white_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
+write.table(df[rownames(df)%in%append(black.list.libs,excluded.samples),],file=paste("libs_black_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
 
 cat("All files created.\n")
 
