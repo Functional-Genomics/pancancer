@@ -135,9 +135,10 @@ if(is.null(excluded.libs.table)) {
   q(status=1)
 }
 cat("Found ",nrow(excluded.libs.table)," in ",excluded.file,"\n")
-excluded.samples <- excluded.libs.table$analysis_id[as.character(excluded.libs.table$fastq_file)=="all"]
-cat("Samples excluded ",length(excluded.samples),"\n")
 
+excluded.samples <- as.character(excluded.libs.table$analysis_id[as.character(excluded.libs.table$fastq_file)=="all"])
+cat("Samples excluded ",length(excluded.samples),"\n")
+#excluded.samples
 cat("Downloading and reading excluded samples...done.\n")
 
 
@@ -207,11 +208,8 @@ names(v) <- metadata$analysis_id
 analysis.ids <- v[names(x)]-x
 samples.black.listed <- names(analysis.ids[analysis.ids==0])
 cat("Samples blacklisted:",length(samples.black.listed),"\n")
-# add the excluded samples
-samples.black.listed <- unique(append(samples.black.listed,excluded.samples))
 cat("Samples excluded:",length(excluded.samples),"\n")
-cat("Samples blacklisted+excluded:",length(samples.black.listed),"\n")
-#length(samples.black.listed)
+#cat("Samples blacklisted+excluded:",length(samples.black.listed),"\n")
 
 a <- table(as.character(metadata[samples.black.listed,"submitted_donor_id"]))
 b <- table(as.character(metadata[metadata$submitted_donor_id%in% names(a),"submitted_donor_id"]))
@@ -220,6 +218,9 @@ ab <- a/b
 cat("Donors blacklisted:",length(ab[ab==1]),"\n")
 black.list.donors <- unique(names(ab[ab==1]))
 
+# exclude blacklisted
+#qc <- qc[,!colnames(qc) %in% samples.black.listed ]
+#dim(qc2)
 ###################################################
 # White list - libraries, samples, and donors
 qc.white <- qc[vars,!colnames(qc) %in% flagged.libs.v]
@@ -245,6 +246,7 @@ names(v) <- metadata$analysis_id
 analysis.ids <- v[names(x)]-x
 samples.white.listed <- names(analysis.ids[analysis.ids==0])
 samples.white.listed <- samples.white.listed[!samples.white.listed%in%excluded.samples]
+samples.white.listed <- samples.white.listed[!samples.white.listed%in%samples.black.listed]
 cat("Samples whitelisted:",length(samples.white.listed),"\n")
 
 a <- table(as.character(metadata[samples.white.listed,"submitted_donor_id"]))
