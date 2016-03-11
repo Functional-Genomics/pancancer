@@ -113,6 +113,7 @@ aids <- unique(metadata$aliquot_id)
 cat("Donors: "); cat(length(ss)); cat ("\n");
 cat("Aliquots: "); cat(length(aids)); cat ("\n");
 
+
 ############################
 # Excluded samples/libraries
 excluded.link <- NULL
@@ -154,18 +155,20 @@ samples.in.qc <- metadata[unique(gsub("/.*","",colnames(qc))),]
 cat("samples in QC ",nrow(samples.in.qc),"\n")
 
 #rownames(qc)
-
+# transpose the qc matrix (libs by feature)
+t.qc <- t(qc)
 
 ####################################
 # what was the correlation threshold 0.95
 # what was the criteria 3/bias
-vars <- grep("_fail",rownames(qc),value=T)
+vars <- grep("_fail",colnames(t.qc),value=T)
 print(vars)
 flagged.libs <- list()
 flagged.sum <- list()
+#crit <- vars[1]
 for ( crit in vars ) {
-  x <- as.character(unlist(qc[crit,]))
-  names(x) <- colnames(qc)
+  x <- as.character(unlist(t.qc[,crit]))
+  names(x) <- rownames(t.qc)
   flagged.sum[[crit]] <- unlist(table(x))
   flagged.libs[[crit]] <- names(x[x=="True"])
 }
@@ -181,8 +184,7 @@ qc.sel <- qc[vars,flagged.libs.v]
 qc.bool <- qc.sel=="True"
 qc.vot <- colSums(qc.bool)
 
-# transpose the qc matrix (libs by feature)
-t.qc <- t(qc)
+
 ####################################################
 # Blacklists - libraries, samples and donors
 # libs excluded
@@ -207,15 +209,17 @@ if ( length(black.list.libs)==length(previously.blacklisted)) {
   q(status=1)
 }
 
-# expected number of libs per sample
+# expected number of libs per sample (based on the metadata)
+# single read group label (rg_label) for "057da4ba-421e-4f39-afa8-c7de2ca665e2"
 v <- c()
 for ( i in seq(1,nrow(metadata))) {
-  a <- as.character(metadata$rg_label[i])
-  v <- append(v,length(unlist(strsplit(a,split=","))))
+  a <- as.character(metadata$files[i])
+  v <- append(v,length(unlist(strsplit(a,split=" "))))
 }
-names(v) <- metadata$analysis_id
+names(v) <- as.character(metadata$analysis_id)
+expLibsPerSample <- v
 
-analysis.ids <- v[names(x)]-x
+analysis.ids <- expLibsPerSample[names(x)]-x
 samples.black.listed <- names(analysis.ids[analysis.ids==0])
 cat("Samples blacklisted:",length(samples.black.listed),"\n")
 cat("Samples excluded:",length(excluded.samples),"\n")
@@ -252,24 +256,16 @@ x <- table(white.list.libs2)
 white.list.libs3 <- x[!names(x)%in%excluded.samples]
 cat("Samples with whitelisted libraries:",length(x),"\n")
 cat("Samples with whitelisted libraries:",length(white.list.libs3),"\n")
-length(white.list.libs)
-
-
-# expected number of libs per sample
-v <- c()
-for ( i in seq(1,nrow(metadata))) {
-  a <- as.character(metadata$rg_label[i])
-  v <- append(v,length(unlist(strsplit(a,split=","))))
-}
-names(v) <- metadata$analysis_id
 
 #
-analysis.ids <- v[names(x)]-x
+analysis.ids <- expLibsPerSample[names(x)]-x
+
 samples.white.listed <- names(analysis.ids[analysis.ids==0])
 samples.white.listed <- samples.white.listed[!samples.white.listed%in%excluded.samples]
 samples.white.listed <- samples.white.listed[!samples.white.listed%in%samples.black.listed]
 cat("Samples whitelisted:",length(samples.white.listed),"\n")
 
+#
 a <- table(as.character(metadata[samples.white.listed,"submitted_donor_id"]))
 b <- table(as.character(metadata[metadata$submitted_donor_id%in% names(a),"submitted_donor_id"]))
 ab <- a/b
