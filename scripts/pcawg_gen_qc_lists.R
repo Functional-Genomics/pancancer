@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 # =========================================================
-# Copyright 2015,  Nuno A. Fonseca (nuno dot fonseca at gmail dot com)
+# Copyright 2015-2016,  Nuno A. Fonseca (nuno dot fonseca at gmail dot com)
 #
 #
 # This is free software: you can redistribute it and/or modify
@@ -26,7 +26,6 @@ qc.folder.syn.id <- 'syn3107128'
 
 # samples excluded
 excluded.syn.id <- "syn5648208"
-#metadata.file <- "http://www.ebi.ac.uk/~nf/pcawg/metadata_freeze3_v4.tsv"
 #
 metadata.syn.id <- "syn5002504"
 
@@ -154,11 +153,8 @@ colnames(qc) <- unlist(qc["orig_id_tophat",])
 samples.in.qc <- metadata[unique(gsub("/.*","",colnames(qc))),]
 cat("samples in QC ",nrow(samples.in.qc),"\n")
 
-# 2202
-normal <- sum(samples.in.qc$is_tumour=="no",na.rm=T)
-#normal
-tumour <- sum(samples.in.qc$is_tumour=="yes",na.rm=T)
-#tumour
+#rownames(qc)
+
 
 ####################################
 # what was the correlation threshold 0.95
@@ -176,7 +172,7 @@ for ( crit in vars ) {
 
 flagged.libs.v <- unique(unlist(flagged.libs))
 cat("Libraries flagged:",length(flagged.libs.v),"\n")
-# 267
+# 
 perc.libs.flagged <- round(length(flagged.libs.v)/ncol(qc)*100,2)
 cat("Libraries flagged (%):",perc.libs.flagged,"\n")
 
@@ -185,6 +181,8 @@ qc.sel <- qc[vars,flagged.libs.v]
 qc.bool <- qc.sel=="True"
 qc.vot <- colSums(qc.bool)
 
+# transpose the qc matrix (libs by feature)
+t.qc <- t(qc)
 ####################################################
 # Blacklists - libraries, samples and donors
 # libs excluded
@@ -196,6 +194,18 @@ cat("Libraries blacklisted:",num.libraries.black.listed,"\n")
 black.list.libs2 <- gsub("/.*","",black.list.libs)
 x <- table(black.list.libs2)
 cat("Samples with blacklisted libraries:",length(x),"\n")
+
+# check if the results are consistent
+previously.blacklisted <- rownames(t.qc)[as.character(t.qc[,"blacklist"])=="True"]
+if ( length(black.list.libs)==length(previously.blacklisted)) {
+  if ( sum(!black.list.libs%in%previously.blacklisted)!=0 ) {
+    cat("ERROR: There is a mismatch between the number of blacklisted libraries")
+    q(status=1)
+  }
+} else {
+  cat("ERROR: There is a mismatch between the number of blacklisted libraries")
+  q(status=1)
+}
 
 # expected number of libs per sample
 v <- c()
@@ -209,7 +219,6 @@ analysis.ids <- v[names(x)]-x
 samples.black.listed <- names(analysis.ids[analysis.ids==0])
 cat("Samples blacklisted:",length(samples.black.listed),"\n")
 cat("Samples excluded:",length(excluded.samples),"\n")
-#cat("Samples blacklisted+excluded:",length(samples.black.listed),"\n")
 
 a <- table(as.character(metadata[samples.black.listed,"submitted_donor_id"]))
 b <- table(as.character(metadata[metadata$submitted_donor_id%in% names(a),"submitted_donor_id"]))
@@ -218,9 +227,6 @@ ab <- a/b
 cat("Donors blacklisted:",length(ab[ab==1]),"\n")
 black.list.donors <- unique(names(ab[ab==1]))
 
-# exclude blacklisted
-#qc <- qc[,!colnames(qc) %in% samples.black.listed ]
-#dim(qc2)
 ###################################################
 # White list - libraries, samples, and donors
 qc.white <- qc[vars,!colnames(qc) %in% flagged.libs.v]
@@ -228,12 +234,26 @@ white.list.libs <- names(qc.white)
 num.libraries.white.listed <- length(white.list.libs)
 cat("Libraries whitelisted:",num.libraries.white.listed,"\n")
 
+# check if the results are consistent
+previously.whitelisted <- rownames(t.qc)[as.character(t.qc[,"whitelist"])=="True"]
+if ( length(white.list.libs)==length(previously.whitelisted)) {
+  if ( sum(!white.list.libs%in%previously.whitelisted)!=0 ) {
+    cat("ERROR: There is a mismatch between the number of white listed libraries")
+    q(status=1)
+  }
+} else {
+  cat("ERROR: There is a mismatch between the number of white listed libraries")
+  q(status=1)
+}
+
 # analysis ids
 white.list.libs2 <- gsub("/.*","",white.list.libs)
 x <- table(white.list.libs2)
 white.list.libs3 <- x[!names(x)%in%excluded.samples]
 cat("Samples with whitelisted libraries:",length(x),"\n")
 cat("Samples with whitelisted libraries:",length(white.list.libs3),"\n")
+length(white.list.libs)
+
 
 # expected number of libs per sample
 v <- c()
@@ -243,6 +263,7 @@ for ( i in seq(1,nrow(metadata))) {
 }
 names(v) <- metadata$analysis_id
 
+#
 analysis.ids <- v[names(x)]-x
 samples.white.listed <- names(analysis.ids[analysis.ids==0])
 samples.white.listed <- samples.white.listed[!samples.white.listed%in%excluded.samples]
@@ -255,7 +276,7 @@ ab <- a/b
 cat("Donors whitelisted:",length(ab[ab==1]),"\n")
 white.list.donors <- unique(names(ab[ab==1]))
 
-
+###################################################
 # Donors
 write.table(white.list.donors,file=paste("donors_white_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
 write.table(black.list.donors,file=paste("donors_black_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
