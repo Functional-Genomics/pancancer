@@ -211,9 +211,10 @@ if ( length(black.list.libs)==length(previously.blacklisted)) {
 
 # expected number of libs per sample (based on the metadata)
 # single read group label (rg_label) for "057da4ba-421e-4f39-afa8-c7de2ca665e2"
+# go back to rg_label
 v <- c()
 for ( i in seq(1,nrow(metadata))) {
-  a <- as.character(metadata$files[i])
+  a <- as.character(metadata$rg_label[i])
   v <- append(v,length(unlist(strsplit(a,split=" "))))
 }
 names(v) <- as.character(metadata$analysis_id)
@@ -230,6 +231,7 @@ ab <- a/b
 
 cat("Donors blacklisted:",length(ab[ab==1]),"\n")
 black.list.donors <- unique(names(ab[ab==1]))
+
 
 ###################################################
 # White list - libraries, samples, and donors
