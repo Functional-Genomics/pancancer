@@ -232,6 +232,14 @@ ab <- a/b
 cat("Donors blacklisted:",length(ab[ab==1]),"\n")
 black.list.donors <- unique(names(ab[ab==1]))
 
+# Aliquot id
+a <- table(as.character(metadata[samples.black.listed,"aliquot_id"]))
+b <- table(as.character(metadata[metadata$aliquot_id%in% names(a),"aliquot_id"]))
+ab <- a/b
+
+cat("Aliquot ids blacklisted:",length(ab[ab==1]),"\n")
+black.list.aliquot<- unique(names(ab[ab==1]))
+
 
 ###################################################
 # White list - libraries, samples, and donors
@@ -274,10 +282,22 @@ ab <- a/b
 cat("Donors whitelisted:",length(ab[ab==1]),"\n")
 white.list.donors <- unique(names(ab[ab==1]))
 
+# aliquot
+#
+a <- table(as.character(metadata[samples.white.listed,"aliquot_id"]))
+b <- table(as.character(metadata[metadata$aliquot_id%in% names(a),"aliquot_id"]))
+ab <- a/b
+cat("Aliquot id whitelisted:",length(ab[ab==1]),"/",length(unique(metadata$aliquot_id)),"\n")
+white.list.aliquot <- unique(names(ab[ab==1]))
+
 ###################################################
 # Donors
 write.table(white.list.donors,file=paste("donors_white_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
 write.table(black.list.donors,file=paste("donors_black_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
+
+# aliquot ids
+write.table(white.list.aliquot,file=paste("aliquot_white_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
+write.table(black.list.aliquot,file=paste("aliquot_black_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
 
 # Samples
 write.table(metadata[samples.white.listed,c("analysis_id","submitted_donor_id")],file=paste("samples_white_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
@@ -336,6 +356,22 @@ if ( upload == "yes" ) {
                   list(entity=qc.link, wasExecuted=F),
                   list(entity=excluded.link,wasExecuted=F),
                   list(entity=md.link, wasExecuted=F)))
+
+  f5 <- synStore(File(path="aliquot_black_list.tsv", parentId=qc.folder$properties$id,name="Aliquot blacklist"),
+                 activityName="Aliquot - blacklist",
+                 used=list(
+                   list(url=thisCode, name=basename(thisCode), wasExecuted=T),
+                   list(entity=qc.link, wasExecuted=F),
+                   list(entity=excluded.link,wasExecuted=F),
+                   list(entity=md.link, wasExecuted=F)))
+  
+  f6 <- synStore(File(path="aliquot_white_list.tsv", parentId=qc.folder$properties$id,name="Aliquot whitelist"),
+                 activityName="Aliquot - whitelist",
+                 used=list(
+                   list(url=thisCode, name=basename(thisCode), wasExecuted=T),
+                   list(entity=qc.link, wasExecuted=F),
+                   list(entity=excluded.link,wasExecuted=F),
+                   list(entity=md.link, wasExecuted=F)))
 
 }
 cat("All done,bye.\n")
