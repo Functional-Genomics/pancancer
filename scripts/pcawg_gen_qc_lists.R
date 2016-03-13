@@ -215,7 +215,7 @@ if ( length(black.list.libs)==length(previously.blacklisted)) {
 v <- c()
 for ( i in seq(1,nrow(metadata))) {
   a <- as.character(metadata$rg_label[i])
-  v <- append(v,length(unlist(strsplit(a,split=" "))))
+  v <- append(v,length(unlist(strsplit(a,split=","))))
 }
 names(v) <- as.character(metadata$analysis_id)
 expLibsPerSample <- v
