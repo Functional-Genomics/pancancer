@@ -151,6 +151,7 @@ rownames(qc) <- qc[,1]
 qc <- qc[,-1]
 colnames(qc) <- unlist(qc["orig_id_tophat",])
 
+#colnames(qc)
 samples.in.qc <- metadata[unique(gsub("/.*","",colnames(qc))),]
 cat("samples in QC ",nrow(samples.in.qc),"\n")
 
@@ -240,7 +241,6 @@ ab <- a/b
 cat("Aliquot ids blacklisted:",length(ab[ab==1]),"\n")
 black.list.aliquot<- unique(names(ab[ab==1]))
 
-
 ###################################################
 # White list - libraries, samples, and donors
 qc.white <- qc[vars,!colnames(qc) %in% flagged.libs.v]
@@ -262,13 +262,21 @@ if ( length(white.list.libs)==length(previously.whitelisted)) {
 
 # analysis ids
 white.list.libs2 <- gsub("/.*","",white.list.libs)
-x <- table(white.list.libs2)
-white.list.libs3 <- x[!names(x)%in%excluded.samples]
+white.list.libs3 <- white.list.libs2[!white.list.libs2%in%excluded.samples]
+x <- table(white.list.libs3)
+#white.list.libs3 <- x[!names(x)%in%excluded.samples]
+# remove the black listed samples
 cat("Samples with whitelisted libraries:",length(x),"\n")
-cat("Samples with whitelisted libraries:",length(white.list.libs3),"\n")
+cat("Samples with whitelisted libraries (without excluded):",length(white.list.libs3),"\n")
 
+if ( sum(!names(x)%in%names(expLibsPerSample))>0 ) {
+  cat("ERROR: internal error\n")
+  print(names(x)[!names(x)%in%names(expLibsPerSample)])
+  q(status=1)
+}
 #
 analysis.ids <- expLibsPerSample[names(x)]-x
+
 
 samples.white.listed <- names(analysis.ids[analysis.ids==0])
 samples.white.listed <- samples.white.listed[!samples.white.listed%in%excluded.samples]
@@ -313,7 +321,10 @@ df <- data.frame(df)
 rownames(df) <- df$libs
 # remove the excluded samples
 df <- df[!df$samples %in% excluded.samples,]
-
+if ( sum(is.na(df)) ) {
+  cat("ERROR: unable to match donors to samples...inconsistent data\n")
+  q(status=1)
+}
 write.table(df[rownames(df)%in%white.list.libs,],file=paste("libs_white_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
 write.table(df[rownames(df)%in%append(black.list.libs,excluded.samples),],file=paste("libs_black_list.tsv",sep=""),quote=F,row.names=F,col.names=F,sep="\t")
 
