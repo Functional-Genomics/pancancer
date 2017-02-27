@@ -66,15 +66,10 @@ plt.legend(handles=handles,markerscale=3,borderpad=0.5,labelspacing=0.5,loc='upp
 
 
 axes = plt.gca()
-#m,b = np.polyfit(x,y,1)
-#X_plot = np.linspace(axes.get_xlim()[0],axes.get_xlim()[1],100)
-#ulim = max(axes.get_xlim()[1], axes.get_ylim()[1])
-#llim = min(axes.get_xlim()[0],axes.get_ylim()[0])
-#plt.plot(X_plot, m*X_plot + b, '-')
 if len(sys.argv[1:]) == 5:
 	print 'adding text...'
 	labels_file = pd.read_csv(labels_file,sep='\t')
-	if log_scale=='Negative':
+	if log_scale=='negative':
 		labels_file[labels_file.columns[2]]=-np.log10(labels_file[labels_file.columns[2]].astype(float).values)
 		labels_file[labels_file.columns[4]]=-np.log10(labels_file[labels_file.columns[4]].astype(float).values)
 	ax1.scatter(labels_file[labels_file.columns[1]],labels_file[labels_file.columns[2]],color='orange',s=80, edgecolor='none',alpha=0.7)
