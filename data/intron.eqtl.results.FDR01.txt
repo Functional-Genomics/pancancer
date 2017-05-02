@@ -1,0 +1,5 @@
+Eqtl_analysis	N of eGenes (FDR<=0.1)	Color
+intron.eqtl.all.vaf	47	seagreen
+intron.eqtl.carc.vaf	8	seagreen
+intron.eqtl.all.01	22	seagreen
+promoter.eqtl.carc.01	1	seagreen

@@ -1,0 +1,5 @@
+Eqtl_analysis	N of eGenes (FDR<=0.1)	Color
+exon.eqtl.all.vaf	5	blue
+exon.eqtl.carc.vaf	3	blue
+exon.eqtl.all.01	2	blue
+exon.eqtl.carc.01	2	blue

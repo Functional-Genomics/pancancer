@@ -1,0 +1,5 @@
+Eqtl_analysis	N of eGenes (FDR<=0.1)	Color
+prom.eqtl.all.200bp.vaf	9	mediumorchid
+prom.eqtl.carc.200bp.vaf	0	mediumorchid
+prom.eqtl.all.200bp.01	11	mediumorchid
+prom.eqtl.carc.200bp.01	1	mediumorchid
